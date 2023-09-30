@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void bindCameraPreview(@NonNull ProcessCameraProvider cameraProvider) {
-        previewView.setPreferredImplementationMode(PreviewView.ImplementationMode.SURFACE_VIEW);
+        previewView.setImplementationMode(PreviewView.ImplementationMode.PERFORMANCE);
 
         Preview preview = new Preview.Builder()
                 .build();
@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
 
-        preview.setSurfaceProvider(previewView.createSurfaceProvider());
+        preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
         ImageAnalysis imageAnalysis =
                 new ImageAnalysis.Builder()
