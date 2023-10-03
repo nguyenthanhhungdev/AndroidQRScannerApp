@@ -19,7 +19,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
-import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -43,21 +42,21 @@ public class MainActivity extends AppCompatActivity {
 
         previewView = findViewById(R.id.activity_main_previewView);
 
-        qrCodeFoundButton = findViewById(R.id.activity_main_qrCodeFoundButton);
-        qrCodeFoundButton.setVisibility(View.INVISIBLE);
-        qrCodeFoundButton.setOnClickListener(v -> {
-            Toast.makeText(getApplicationContext(), qrCode, Toast.LENGTH_SHORT).show();
-            Uri webPage = Uri.parse(qrCode);
-            Intent intentOpenWebPage = new Intent(Intent.ACTION_VIEW, webPage);
-            startActivity(intentOpenWebPage);
-            Log.i(MainActivity.class.getSimpleName(), "QR Code Found: " + qrCode);
-        });
+//        qrCodeFoundButton = findViewById(R.id.activity_main_qrCodeFoundButton);
+//        qrCodeFoundButton.setVisibility(View.INVISIBLE);
+//        qrCodeFoundButton.setOnClickListener(v -> {
+//            Toast.makeText(getApplicationContext(), qrCode, Toast.LENGTH_SHORT).show();
+//            Uri webPage = Uri.parse(qrCode);
+//            Intent intentOpenWebPage = new Intent(Intent.ACTION_VIEW, webPage);
+//            startActivity(intentOpenWebPage);
+//            Log.i(MainActivity.class.getSimpleName(), "QR Code Found: " + qrCode);
+//        });
 
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         requestCamera();
     }
 
-//    Yêu cầu quyền truy cập camera
+    //    Yêu cầu quyền truy cập camera
     private void requestCamera() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             startCamera();
@@ -70,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-//    Kiểm tra quyền truy cập camera
+    //    Kiểm tra quyền truy cập camera
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -83,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-//    Khởi động camera
+    //    Khởi động camera
     private void startCamera() {
 //        Thêm sự kiện cho camera
         cameraProviderFuture.addListener(() -> {
@@ -119,15 +118,44 @@ public class MainActivity extends AppCompatActivity {
             public void onQRCodeFound(String _qrCode) {
 //                Tìm thấy mã qr code, gán mã và hiện nút
                 qrCode = _qrCode;
-                qrCodeFoundButton.setVisibility(View.VISIBLE);
+                Toast.makeText(getApplicationContext(), qrCode, Toast.LENGTH_SHORT).show();
+                Log.i(MainActivity.class.getSimpleName(), "QR Code Found: " + qrCode);
+                if (qrCode.contains("@gmail.com")) {
+                    sendEmail(qrCode);
+                } else {
+                    openWebPage(qrCode);
+                }
+//                qrCodeFoundButton.setVisibility(View.VISIBLE);
             }
 
             @Override
             public void qrCodeNotFound() {
-                qrCodeFoundButton.setVisibility(View.INVISIBLE);
+//                qrCodeFoundButton.setVisibility(View.INVISIBLE);
+                Toast.makeText(getApplicationContext(), "Không tìm thấy mã QR", Toast.LENGTH_SHORT).show();
             }
         }));
 
-        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, imageAnalysis, preview);
+        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, imageAnalysis, preview);
+    }
+
+    private void openWebPage(String url) {
+        Uri webPage = Uri.parse(url);
+        Intent intentOpenWebPage = new Intent(Intent.ACTION_VIEW, webPage);
+        startActivity(intentOpenWebPage);
+    }
+
+    private void sendEmail(String uri) {
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+
+        String[] parts = uri.split(";");
+        String to = parts[0].split(":")[2];
+        String subject = parts[1].split(":")[1];
+        String body = parts[2].split(":")[1];
+
+        intent.setData(Uri.parse("mailto:" + to));
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+        intent.putExtra(Intent.EXTRA_TEXT, body);
+
+        startActivity(intent);
     }
 }
