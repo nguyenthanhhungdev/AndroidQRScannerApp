@@ -28,11 +28,13 @@ public class QRCodeImageAnalyzer implements ImageAnalysis.Analyzer {
 
     @Override
     public void analyze(@NonNull ImageProxy image) {
+//        Kiểm tra định dạng
         if (image.getFormat() == YUV_420_888 || image.getFormat() == YUV_422_888 || image.getFormat() == YUV_444_888) {
+//            Trính xuất hình ảnh thành 1 mảng byte
             ByteBuffer byteBuffer = image.getPlanes()[0].getBuffer();
             byte[] imageData = new byte[byteBuffer.capacity()];
             byteBuffer.get(imageData);
-
+//           Tạo đối tượng PlanarYUVLuminanceSource để có thể sử dụng thư viện ZXing
             PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(
               imageData,
               image.getWidth(), image.getHeight(),
@@ -41,9 +43,11 @@ public class QRCodeImageAnalyzer implements ImageAnalysis.Analyzer {
               false
             );
 
+//           Tạo đối tượng BinaryBitmap từ PlanarYUVLuminanceSource đề quét mã QR
             BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
 
             try {
+//                Sử dụng QRCodeMultiReader để quét mã QR từ BinaryBitmap
                 Result result = new QRCodeMultiReader().decode(binaryBitmap);
                 listener.onQRCodeFound(result.getText());
             } catch (FormatException | ChecksumException | NotFoundException e) {

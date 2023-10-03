@@ -13,7 +13,9 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
@@ -43,18 +45,19 @@ public class MainActivity extends AppCompatActivity {
 
         qrCodeFoundButton = findViewById(R.id.activity_main_qrCodeFoundButton);
         qrCodeFoundButton.setVisibility(View.INVISIBLE);
-        qrCodeFoundButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), qrCode, Toast.LENGTH_SHORT).show();
-                Log.i(MainActivity.class.getSimpleName(), "QR Code Found: " + qrCode);
-            }
+        qrCodeFoundButton.setOnClickListener(v -> {
+            Toast.makeText(getApplicationContext(), qrCode, Toast.LENGTH_SHORT).show();
+            Uri webPage = Uri.parse(qrCode);
+            Intent intentOpenWebPage = new Intent(Intent.ACTION_VIEW, webPage);
+            startActivity(intentOpenWebPage);
+            Log.i(MainActivity.class.getSimpleName(), "QR Code Found: " + qrCode);
         });
 
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         requestCamera();
     }
 
+//    Yêu cầu quyền truy cập camera
     private void requestCamera() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             startCamera();
@@ -67,8 +70,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+//    Kiểm tra quyền truy cập camera
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CAMERA) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startCamera();
@@ -78,7 +83,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+//    Khởi động camera
     private void startCamera() {
+//        Thêm sự kiện cho camera
         cameraProviderFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
@@ -110,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
         imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzer(new QRCodeFoundListener() {
             @Override
             public void onQRCodeFound(String _qrCode) {
+//                Tìm thấy mã qr code, gán mã và hiện nút
                 qrCode = _qrCode;
                 qrCodeFoundButton.setVisibility(View.VISIBLE);
             }
