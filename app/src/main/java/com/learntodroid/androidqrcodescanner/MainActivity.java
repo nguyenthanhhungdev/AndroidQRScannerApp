@@ -61,15 +61,15 @@ public class MainActivity extends AppCompatActivity {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             startCamera();
         } else {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
+//            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
-            } else {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
-            }
+//            } else {
+//                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
+//            }
         }
     }
 
-    //    Kiểm tra quyền truy cập camera
+    //    Kiểm tra quyền truy cập camera được trả về từ requestCamera
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -84,9 +84,10 @@ public class MainActivity extends AppCompatActivity {
 
     //    Khởi động camera
     private void startCamera() {
-//        Thêm sự kiện cho camera
+//        Lắng nghe quá trình khởi động camera hoàn tất
         cameraProviderFuture.addListener(() -> {
             try {
+//                Lấy quyền truy cập vào camera thông qua ProcessCameraProvider
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
                 bindCameraPreview(cameraProvider);
             } catch (ExecutionException | InterruptedException e) {
@@ -96,21 +97,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void bindCameraPreview(@NonNull ProcessCameraProvider cameraProvider) {
+//        Thiết lập chế độ hiền thị
         previewView.setImplementationMode(PreviewView.ImplementationMode.PERFORMANCE);
 
+//        Tạo đối tượng hiển thị hình ảnh trực tiếp từ camera
         Preview preview = new Preview.Builder()
                 .build();
 
+//        Chọn cam sau
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
 
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
+//        Tạo đối tượng xử lý hình ảnh
         ImageAnalysis imageAnalysis =
                 new ImageAnalysis.Builder()
                         .setTargetResolution(new Size(1280, 720))
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST) //Xác định có mã qr bên trong hình ảnh hay không
                         .build();
 
         imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzer(new QRCodeFoundListener() {
